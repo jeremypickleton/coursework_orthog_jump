@@ -2,7 +2,7 @@ import pygame
 import sys
 from player import Player
 from utilities import load_level_from_csv, generate_blocks_from_map
-from game_obj import blocks, players
+from game_obj import blocks, players, spikes
 
 pygame.init()
 
@@ -32,7 +32,9 @@ class Button:
 
 
 def start_game():
+    print("STATRT")
     blocks.empty()  
+    spikes.empty()
     players.empty()  
 
     worldmap = load_level_from_csv('../assets/map.csv')
@@ -49,6 +51,7 @@ def game_loop(player):
     done = False
     while not done:
         blocks.update()
+        spikes.update()
         clock.tick(60)
 
         for event in pygame.event.get():
@@ -60,6 +63,7 @@ def game_loop(player):
 
         screen.fill([200, 100, 235])
         blocks.draw(screen)
+        spikes.draw(screen)
         players.draw(screen)
         player.update()
         player.jump()

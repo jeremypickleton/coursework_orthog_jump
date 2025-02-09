@@ -1,5 +1,6 @@
 import pygame
-from game_obj import GameObj, blocks, players
+from game_obj import GameObj, blocks, players, spikes
+from utilities import load_level_from_csv, generate_blocks_from_map
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -63,4 +64,23 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = block.rect.bottom
                 self.dy = 0
         else:
-            self.falling = True    
+            self.falling = True   
+
+        crashed = pygame.sprite.spritecollide(self, spikes, False) 
+        if crashed:
+            self.crash()
+
+    def crash(self):
+        print("You crashed into a spike!")
+        blocks.empty()  
+        spikes.empty()
+        self.rect.x = 50
+        self.rect.y = 100
+        worldmap = load_level_from_csv('../assets/map.csv')
+        generate_blocks_from_map(worldmap)
+
+     
+
+
+
+
