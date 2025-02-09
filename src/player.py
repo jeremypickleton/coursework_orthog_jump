@@ -16,6 +16,7 @@ class Player(pygame.sprite.Sprite):
         self.dy = 0
         self.blockmove = False
         self.finished = False
+        self.level = 0
 
         players.add(self)
    
@@ -78,9 +79,13 @@ class Player(pygame.sprite.Sprite):
         print("You crashed into a spike!")
         blocks.empty()  
         spikes.empty()
+        ends.empty()
         self.rect.x = 50
         self.rect.y = 100
-        worldmap = load_level_from_csv('../assets/map.csv')
+        map_file = '../assets/map' + str(self.level) + '.csv'
+        print("map")
+        print(map_file)
+        worldmap = load_level_from_csv(map_file)
         generate_blocks_from_map(worldmap)
 
 
