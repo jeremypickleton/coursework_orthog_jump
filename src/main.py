@@ -2,7 +2,7 @@ import pygame
 import sys
 from player import Player
 from utilities import load_level_from_csv, generate_blocks_from_map
-from game_obj import blocks, players, spikes
+from game_obj import blocks, players, spikes, ends
 
 pygame.init()
 
@@ -32,7 +32,6 @@ class Button:
 
 
 def start_game():
-    print("STATRT")
     blocks.empty()  
     spikes.empty()
     players.empty()  
@@ -50,8 +49,13 @@ def game_loop(player):
 
     done = False
     while not done:
+
+        if player.finished: 
+            finish_screen()
+            
         blocks.update()
         spikes.update()
+        ends.update()
         clock.tick(60)
 
         for event in pygame.event.get():
@@ -65,6 +69,7 @@ def game_loop(player):
         blocks.draw(screen)
         spikes.draw(screen)
         players.draw(screen)
+        ends.draw(screen)
         player.update()
         player.jump()
         pygame.display.flip()
@@ -94,6 +99,26 @@ def menu_screen():
     pygame.quit()
     sys.exit()
 
+def finish_screen():
+    start_button = Button("game finished!", 120, 200, 300, 90, None)
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  
+                    if start_button.rect.collidepoint(event.pos):
+                        start_button.is_pressed(event.pos)
+
+        screen.fill([10, 75, 200])  
+        start_button.draw(screen)
+
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     menu_screen()

@@ -3,6 +3,7 @@ import pygame
 blocks = pygame.sprite.Group()
 players = pygame.sprite.Group()
 spikes = pygame.sprite.Group()
+ends = pygame.sprite.Group()
 
 class GameObj(pygame.sprite.Sprite):
     def __init__(self, x, y):

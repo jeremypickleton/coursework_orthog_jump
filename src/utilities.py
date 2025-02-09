@@ -1,5 +1,5 @@
 import csv
-from block import Block, Spike
+from block import Block, Spike, End
 
 def load_level_from_csv(file_path):
     worldmap = []
@@ -19,5 +19,7 @@ def generate_blocks_from_map(worldmap):
                 Block(colno * 50, rowno * 50)
             if worldmap[rowno][colno] == 's':
                 Spike(colno * 50, rowno * 50)
+            if worldmap[rowno][colno] == 'f':
+                End(colno * 50, rowno * 50)
             colno += 1
         rowno += 1

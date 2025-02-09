@@ -1,5 +1,5 @@
 import pygame
-from game_obj import GameObj, blocks, spikes
+from game_obj import GameObj, blocks, spikes, ends
 
 class Block(GameObj):
     def __init__(self, x, y):
@@ -17,3 +17,11 @@ class Spike(GameObj):
         self.image.fill([250, 0, 0])
         spikes.add(self)
 
+class End(GameObj):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        super().update()
+        self.image = pygame.Surface([50, 50])
+        self.image.fill([0, 255, 0])
+        ends.add(self)
+        
