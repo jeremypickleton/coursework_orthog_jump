@@ -16,6 +16,8 @@ generate_blocks_from_map(worldmap)
 # Create player
 player = Player(50, 100)
 
+#jacky is a mug
+
 done = False
 while not done:
     blocks.update()
