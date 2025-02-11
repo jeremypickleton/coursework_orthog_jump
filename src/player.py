@@ -82,7 +82,7 @@ class Player(pygame.sprite.Sprite):
         ends.empty()
         self.rect.x = 50
         self.rect.y = 100
-        map_file = '../assets/map' + str(self.level) + '.csv'
+        map_file = './assets/map' + str(self.level) + '.csv'
         print("map")
         print(map_file)
         worldmap = load_level_from_csv(map_file)

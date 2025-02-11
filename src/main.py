@@ -40,9 +40,9 @@ def start_game(level):
     ends.empty()
 
     if level == 1:
-        worldmap = load_level_from_csv('../assets/map1.csv')
+        worldmap = load_level_from_csv('./assets/map1.csv')
     elif level == 2: 
-        worldmap = load_level_from_csv('../assets/map2.csv')
+        worldmap = load_level_from_csv('./assets/map2.csv')
     generate_blocks_from_map(worldmap)
 
     player = Player(50, 100)
