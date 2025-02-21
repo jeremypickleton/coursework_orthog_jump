@@ -2,7 +2,7 @@ import pygame
 import sys
 from player import Player
 from utilities import load_level_from_csv, generate_blocks_from_map
-from game_obj import blocks, players, spikes, ends
+from game_obj import blocks, players, spikes, ends, ships
 
 pygame.init()
 print("test")
@@ -37,6 +37,7 @@ def start_game(level):
     print(level)
     blocks.empty()
     spikes.empty()
+    ships.empty()
     players.empty()
     ends.empty()
 
@@ -46,7 +47,7 @@ def start_game(level):
         worldmap = load_level_from_csv("./assets/map2.csv")
     generate_blocks_from_map(worldmap)
 
-    player = Player(50, 100)
+    player = Player(50, 50)
     player.level = level
 
     game_loop(player)
@@ -63,6 +64,7 @@ def game_loop(player):
 
         blocks.update()
         spikes.update()
+        ships.update()
         ends.update()
         clock.tick(60)
 
@@ -76,6 +78,7 @@ def game_loop(player):
         screen.fill([200, 100, 235])
         blocks.draw(screen)
         spikes.draw(screen)
+        ships.draw(screen)
         players.draw(screen)
         ends.draw(screen)
         player.update()
@@ -115,6 +118,7 @@ def menu_screen():
 def finish_screen():
     blocks.empty()
     spikes.empty()
+    ships.empty()
     players.empty()
     ends.empty()
     start_button = Button("Game finished!", 120, 200, 300, 90, menu_screen)

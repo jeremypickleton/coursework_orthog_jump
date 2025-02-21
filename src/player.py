@@ -1,6 +1,7 @@
 import pygame
-from game_obj import GameObj, blocks, players, spikes, ends
+from game_obj import GameObj, blocks, players, spikes, ends, ships
 from utilities import load_level_from_csv, generate_blocks_from_map
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -17,43 +18,81 @@ class Player(pygame.sprite.Sprite):
         self.blockmove = False
         self.finished = False
         self.level = 0
+        self.flight_mode = False
 
         players.add(self)
-   
-    def jump(self):
-        if self.falling:
-            self.dy += 0.5
-            if self.dy > 10:
-                self.dy = 10
-        else:
+
+    def toggle_flight_mode(self):
+        """Toggle flight mode on or off."""
+        self.flight_mode = not self.flight_mode
+        if self.flight_mode:
             self.dy = 0
 
-        keys = pygame.key.get_pressed()
- 
-        if keys[pygame.K_RIGHT]:
-            self.dx += 2 
-        elif keys[pygame.K_LEFT]:
-            self.dx -= 2
+    def jump(self):
 
-        if keys[pygame.K_UP] and not self.falling:
-            self.dy -= 10
-            self.falling = True
-            
-        if keys[pygame.K_LEFT]:
-            self.blockmove = True
+        if self.flight_mode:
+            # Free movement in all directions when in flight mode
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP]:
+                self.dy = -5
+            elif keys[pygame.K_DOWN]:
+                self.dy = 5
+            else:
+                self.dy = 0  # Stop moving vertically when no key is pressed
+
+            if keys[pygame.K_RIGHT]:
+                self.dx += 2
+            elif keys[pygame.K_LEFT]:
+                self.dx -= 2
+
+            if keys[pygame.K_LEFT]:
+                self.blockmove = True
+            else:
+                self.blockmove = False
+
+            self.dx = self.dx * 0.7
+
+            self.rect.x += int(self.dx)
+
         else:
-            self.blockmove = False
-        self.dx = self.dx * 0.7
 
-        self.rect.x += int(self.dx)
+            if self.falling:
+                self.dy += 0.5
+                if self.dy > 10:
+                    self.dy = 10
+            else:
+                self.dy = 0
+
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_RIGHT]:
+                self.dx += 2
+            elif keys[pygame.K_LEFT]:
+                self.dx -= 2
+
+            if keys[pygame.K_UP] and not self.falling:
+                self.dy -= 10
+                self.falling = True
+
+            if keys[pygame.K_LEFT]:
+                self.blockmove = True
+            else:
+                self.blockmove = False
+            self.dx = self.dx * 0.7
+
+            self.rect.x += int(self.dx)
         touched = pygame.sprite.spritecollide(self, blocks, False)
-        
+        flight_activated = pygame.sprite.spritecollide(self, ships, False)
+
         if touched:
             block = touched[0]
             if self.rect.right > block.rect.left and self.rect.left < block.rect.left:
                 self.rect.right = block.rect.left
             else:
                 self.rect.left = block.rect.right
+
+        if flight_activated:
+            self.flight_mode = True
 
         self.rect.y += int(self.dy)
         touched = pygame.sprite.spritecollide(self, blocks, False)
@@ -66,35 +105,29 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = block.rect.bottom
                 self.dy = 0
         else:
-            self.falling = True   
+            self.falling = True
 
-        crashed = pygame.sprite.spritecollide(self, spikes, False) 
+        crashed = pygame.sprite.spritecollide(self, spikes, False)
         if crashed:
             self.crash()
+
+        ship_block = pygame.sprite.spritecollide(self, ships, False)
+        if ship_block:
+            print("Found a ship!")
+
         finished = pygame.sprite.spritecollide(self, ends, False)
         if finished:
             self.finished = True
-           
+
     def crash(self):
         print("You crashed into a spike!")
-        blocks.empty()  
+        blocks.empty()
         spikes.empty()
         ends.empty()
         self.rect.x = 50
         self.rect.y = 100
-        map_file = './assets/map' + str(self.level) + '.csv'
+        map_file = "./assets/map" + str(self.level) + ".csv"
         print("map")
         print(map_file)
         worldmap = load_level_from_csv(map_file)
         generate_blocks_from_map(worldmap)
-
-
-        
-    
-
-
-     
-
-
-
-
