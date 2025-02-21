@@ -12,6 +12,21 @@ def load_level_from_csv(file_path):
     return worldmap
 
 
+def write_to_csv(file_path, data):
+    with open(file_path, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(data)
+
+
+def get_last_attempt_num():
+    with open("./assets/leaderboard.csv", mode="r") as file:
+        reader = csv.reader(file)
+        rows = list(reader)
+        if rows:
+            return rows[-1]
+        return None
+
+
 def generate_blocks_from_map(worldmap):
     rowno = 0
     while rowno < len(worldmap):

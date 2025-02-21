@@ -1,6 +1,11 @@
 import pygame
 from game_obj import GameObj, blocks, players, spikes, ends, ships
-from utilities import load_level_from_csv, generate_blocks_from_map
+from utilities import (
+    load_level_from_csv,
+    generate_blocks_from_map,
+    write_to_csv,
+    get_last_attempt_num,
+)
 
 
 class Player(pygame.sprite.Sprite):
@@ -21,12 +26,6 @@ class Player(pygame.sprite.Sprite):
         self.flight_mode = False
 
         players.add(self)
-
-    def toggle_flight_mode(self):
-        """Toggle flight mode on or off."""
-        self.flight_mode = not self.flight_mode
-        if self.flight_mode:
-            self.dy = 0
 
     def jump(self):
 
@@ -112,22 +111,23 @@ class Player(pygame.sprite.Sprite):
             self.crash()
 
         ship_block = pygame.sprite.spritecollide(self, ships, False)
-        if ship_block:
-            print("Found a ship!")
-
         finished = pygame.sprite.spritecollide(self, ends, False)
+
         if finished:
             self.finished = True
+            attempt = int(get_last_attempt_num()[1]) + 1
+            data = ["Felix", str(attempt), str(self.level)]
+
+            if attempt <= 7:
+                write_to_csv("./assets/leaderboard.csv", data)
 
     def crash(self):
-        print("You crashed into a spike!")
         blocks.empty()
         spikes.empty()
         ends.empty()
         self.rect.x = 50
         self.rect.y = 100
         map_file = "./assets/map" + str(self.level) + ".csv"
-        print("map")
         print(map_file)
         worldmap = load_level_from_csv(map_file)
         generate_blocks_from_map(worldmap)

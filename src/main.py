@@ -5,7 +5,6 @@ from utilities import load_level_from_csv, generate_blocks_from_map
 from game_obj import blocks, players, spikes, ends, ships
 
 pygame.init()
-print("test")
 screen = pygame.display.set_mode([500, 500])
 pygame.display.set_caption("Orthogonal Jump")
 
@@ -33,8 +32,6 @@ class Button:
 
 
 def start_game(level):
-    print("level")
-    print(level)
     blocks.empty()
     spikes.empty()
     ships.empty()
@@ -90,8 +87,7 @@ def game_loop(player):
 
 
 def menu_screen():
-    start_button = Button("Start Game", 120, 200, 300, 90, start_game, params=[1])
-    level2 = Button("Level 2", 120, 300, 300, 90, start_game, params=[2])
+    start_button = Button("Start Game", 120, 200, 300, 90, level_menu)
 
     done = False
     while not done:
@@ -102,11 +98,35 @@ def menu_screen():
                 if event.button == 1:
                     if start_button.rect.collidepoint(event.pos):
                         start_button.is_pressed(event.pos)
+
+        screen.fill([10, 75, 200])
+        start_button.draw(screen)
+
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
+
+
+def level_menu():
+    # start_button = Button("Start Game", 120, 200, 300, 90, start_game, params=[1])
+    level1 = Button("Level 1", 120, 200, 300, 90, start_game, params=[1])
+    level2 = Button("Level 2", 120, 300, 300, 90, start_game, params=[2])
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if level1.rect.collidepoint(event.pos):
+                        level1.is_pressed(event.pos)
                     if level2.rect.collidepoint(event.pos):
                         level2.is_pressed(event.pos)
 
         screen.fill([10, 75, 200])
-        start_button.draw(screen)
+        level1.draw(screen)
         level2.draw(screen)
 
         pygame.display.flip()
@@ -121,7 +141,7 @@ def finish_screen():
     ships.empty()
     players.empty()
     ends.empty()
-    start_button = Button("Game finished!", 120, 200, 300, 90, menu_screen)
+    start_button = Button("Game finished!", 120, 50, 300, 90, menu_screen)
 
     done = False
     while not done:
@@ -136,6 +156,28 @@ def finish_screen():
         screen.fill([10, 75, 200])
         start_button.draw(screen)
 
+        data = load_level_from_csv("./assets/leaderboard.csv")
+        cell_width = 100
+        cell_height = 40
+        padding = 5
+        font = pygame.font.Font(None, 20)
+        for row_index, row in enumerate(data):
+            for col_index, cell in enumerate(row):
+                # Render the text for each cell
+                text_surface = font.render(cell, True, (0, 0, 0))
+                # Calculate position of each cell
+                x = 120 + col_index * cell_width + padding
+                y = 170 + row_index * cell_height + padding
+                # Draw text to the screen
+                screen.blit(text_surface, (x, y))
+
+                # Draw a rectangle around each cell (optional)
+                pygame.draw.rect(
+                    screen,
+                    (250, 0, 0),
+                    (x - padding, y - padding, cell_width, cell_height),
+                    2,
+                )
         pygame.display.flip()
 
     pygame.quit()
