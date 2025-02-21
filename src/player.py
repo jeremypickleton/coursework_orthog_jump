@@ -30,14 +30,15 @@ class Player(pygame.sprite.Sprite):
     def jump(self):
 
         if self.flight_mode:
-            # Free movement in all directions when in flight mode
             keys = pygame.key.get_pressed()
+
             if keys[pygame.K_UP]:
-                self.dy = -5
+                self.dy += -0.535
+
             elif keys[pygame.K_DOWN]:
                 self.dy = 5
             else:
-                self.dy = 0  # Stop moving vertically when no key is pressed
+                self.dy += 0.3
 
             if keys[pygame.K_RIGHT]:
                 self.dx += 2
