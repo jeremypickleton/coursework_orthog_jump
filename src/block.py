@@ -1,5 +1,5 @@
 import pygame
-from game_obj import GameObj, blocks, spikes, ends, ships
+from game_obj import GameObj, blocks, spikes, ends, ships, balls
 
 
 class Block(GameObj):
@@ -27,6 +27,15 @@ class Ship(GameObj):
         self.image = pygame.Surface([50, 50])
         self.image.fill([0, 0, 250])
         ships.add(self)
+
+
+class Ball(GameObj):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        super().update()
+        self.image = pygame.Surface([50, 50])
+        self.image.fill([255, 215, 0])
+        balls.add(self)
 
 
 class End(GameObj):

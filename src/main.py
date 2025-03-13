@@ -2,7 +2,7 @@ import pygame
 import sys
 from player import Player
 from utilities import load_level_from_csv, generate_blocks_from_map
-from game_obj import blocks, players, spikes, ends, ships
+from game_obj import blocks, players, spikes, ends, ships, balls
 
 pygame.init()
 screen = pygame.display.set_mode([500, 500])
@@ -35,18 +35,22 @@ class Button:
 
 
 def start_game(level):
+    # Reset all game objects for a fresh start
     blocks.empty()
     spikes.empty()
     ships.empty()
     players.empty()
+    balls.empty()
     ends.empty()
 
+    # Load the level map
     if level == 1:
         worldmap = load_level_from_csv("./assets/map1.csv")
     elif level == 2:
         worldmap = load_level_from_csv("./assets/map2.csv")
     generate_blocks_from_map(worldmap)
 
+    # Create a player and set the current level
     player = Player(50, 50)
     player.level = level
 
@@ -55,19 +59,23 @@ def start_game(level):
 
 def game_loop(player):
     clock = pygame.time.Clock()
-
     done = False
-    while not done:
 
+    while not done:
         if player.finished:
             finish_screen()
 
+        # Update the game objects
         blocks.update()
         spikes.update()
         ships.update()
         ends.update()
+        balls.update()
+
+        # Control the game frame rate
         clock.tick(60)
 
+        # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
@@ -75,14 +83,20 @@ def game_loop(player):
                 if event.key == pygame.K_ESCAPE:
                     done = True
 
+        # Fill the background and draw all game elements
         screen.fill([200, 100, 235])
         blocks.draw(screen)
         spikes.draw(screen)
         ships.draw(screen)
         players.draw(screen)
         ends.draw(screen)
+        balls.draw(screen)
+
+        # Update the player's movements and interactions
         player.update()
         player.jump()
+
+        # Flip the display to show changes
         pygame.display.flip()
 
     pygame.quit()
@@ -90,6 +104,7 @@ def game_loop(player):
 
 
 def menu_screen():
+    # Main menu setup
     start_button = Button("Start Game", 120, 200, 300, 90, level_menu)
     leaderboard_menu = Button("Leaderboard", 170, 300, 220, 70, leaderboard_menu_screen)
 
@@ -116,6 +131,7 @@ def menu_screen():
 
 
 def level_menu():
+    # Level selection menu setup
     level1 = Button("Level 1", 120, 200, 300, 90, start_game, params=[1])
     level2 = Button("Level 2", 120, 300, 300, 90, start_game, params=[2])
 
@@ -142,9 +158,11 @@ def level_menu():
 
 
 def leaderboard_menu_screen():
+    # Leaderboard screen setup
     blocks.empty()
     spikes.empty()
     ships.empty()
+    balls.empty()
     players.empty()
     ends.empty()
     menu_button = Button("Main Menu", 170, 50, 200, 70, menu_screen)
@@ -187,10 +205,12 @@ def leaderboard_menu_screen():
 
 
 def finish_screen():
+    # Display the finish screen when the game ends
     blocks.empty()
     spikes.empty()
     ships.empty()
     players.empty()
+    balls.empty()
     ends.empty()
     start_button = Button("Game finished!", 120, 50, 300, 90, menu_screen)
 

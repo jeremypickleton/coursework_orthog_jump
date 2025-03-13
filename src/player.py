@@ -1,5 +1,5 @@
 import pygame
-from game_obj import GameObj, blocks, players, spikes, ends, ships
+from game_obj import GameObj, blocks, players, spikes, ends, ships, balls
 from utilities import (
     load_level_from_csv,
     generate_blocks_from_map,
@@ -14,90 +14,108 @@ class Player(pygame.sprite.Sprite):
 
         self.image = pygame.Surface([45, 45])
         self.image.fill([150, 125, 90])
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+        # Movement and game state attributes
+        self.dx, self.dy = 0, 0
         self.falling = True
-        self.dx = 0
-        self.dy = 0
         self.blockmove = False
         self.finished = False
         self.level = 0
         self.flight_mode = False
+        self.gravity = True
+        self.gravity_up = False
 
         players.add(self)
 
     def jump(self):
+        keys = pygame.key.get_pressed()
 
         if self.flight_mode:
-            keys = pygame.key.get_pressed()
+            self.handle_flight(keys)
+        else:
+            self.handle_normal_jump(keys)
+
+        self.handle_gravity(keys)
+
+        # Collision handling
+        self.handle_block_collision()
+        self.handle_ship_collision()
+        self.handle_gravity_switch()
+        self.handle_falling_collision()
+        self.handle_spike_collision()
+        self.handle_finish_collision()
+
+    def handle_flight(self, keys):
+        if keys[pygame.K_UP]:
+            self.dy -= 0.535
+        elif keys[pygame.K_DOWN]:
+            self.dy = 5
+        else:
+            self.dy += 0.3
+
+        if keys[pygame.K_RIGHT]:
+            self.dx += 2
+        elif keys[pygame.K_LEFT]:
+            self.dx -= 2
+
+        self.blockmove = keys[pygame.K_LEFT]
+        self.dx *= 0.7
+        self.rect.x += int(self.dx)
+
+    def handle_normal_jump(self, keys):
+        if self.falling:
+            self.dy = min(self.dy + 0.5, 10)
+        else:
+            self.dy = 0
+
+        if self.gravity_up:
+            self.dy = min(self.dy - 1.5, 0.5)
+
+        if keys[pygame.K_RIGHT]:
+            self.dx += 2
+        elif keys[pygame.K_LEFT]:
+            self.dx -= 2
+
+        if keys[pygame.K_UP] and not self.falling:
+            self.dy -= 10
+            self.falling = True
+
+        self.blockmove = keys[pygame.K_LEFT]
+        self.dx *= 0.7
+        self.rect.x += int(self.dx)
+
+    def handle_gravity(self, keys):
+        if not self.gravity:
 
             if keys[pygame.K_UP]:
-                self.dy += -0.535
+                print("Gravity disabled", self.dy)
+                self.dy += 5
+                self.gravity_up = True
+            self.dy -= 0.5
 
-            elif keys[pygame.K_DOWN]:
-                self.dy = 5
-            else:
-                self.dy += 0.3
-
-            if keys[pygame.K_RIGHT]:
-                self.dx += 2
-            elif keys[pygame.K_LEFT]:
-                self.dx -= 2
-
-            if keys[pygame.K_LEFT]:
-                self.blockmove = True
-            else:
-                self.blockmove = False
-
-            self.dx = self.dx * 0.7
-
-            self.rect.x += int(self.dx)
-
-        else:
-
-            if self.falling:
-                self.dy += 0.5
-                if self.dy > 10:
-                    self.dy = 10
-            else:
-                self.dy = 0
-
-            keys = pygame.key.get_pressed()
-
-            if keys[pygame.K_RIGHT]:
-                self.dx += 2
-            elif keys[pygame.K_LEFT]:
-                self.dx -= 2
-
-            if keys[pygame.K_UP] and not self.falling:
-                self.dy -= 10
-                self.falling = True
-
-            if keys[pygame.K_LEFT]:
-                self.blockmove = True
-            else:
-                self.blockmove = False
-            self.dx = self.dx * 0.7
-
-            self.rect.x += int(self.dx)
-        touched = pygame.sprite.spritecollide(self, blocks, False)
-        flight_activated = pygame.sprite.spritecollide(self, ships, False)
-
-        if touched:
-            block = touched[0]
+    def handle_block_collision(self):
+        touched_blocks = pygame.sprite.spritecollide(self, blocks, False)
+        if touched_blocks:
+            block = touched_blocks[0]
             if self.rect.right > block.rect.left and self.rect.left < block.rect.left:
                 self.rect.right = block.rect.left
             else:
                 self.rect.left = block.rect.right
 
-        if flight_activated:
+    def handle_ship_collision(self):
+        if pygame.sprite.spritecollide(self, ships, False):
             self.flight_mode = True
 
+    def handle_gravity_switch(self):
+        if pygame.sprite.spritecollide(self, balls, False):
+            self.gravity = False
+
+    def handle_falling_collision(self):
         self.rect.y += int(self.dy)
-        touched = pygame.sprite.spritecollide(self, blocks, False)
-        if touched:
-            block = touched[0]
+        touched_blocks = pygame.sprite.spritecollide(self, blocks, False)
+        if touched_blocks:
+            block = touched_blocks[0]
             if self.rect.bottom > block.rect.top and self.rect.top < block.rect.top:
                 self.rect.bottom = block.rect.top
                 self.falling = False
@@ -107,14 +125,12 @@ class Player(pygame.sprite.Sprite):
         else:
             self.falling = True
 
-        crashed = pygame.sprite.spritecollide(self, spikes, False)
-        if crashed:
+    def handle_spike_collision(self):
+        if pygame.sprite.spritecollide(self, spikes, False):
             self.crash()
 
-        ship_block = pygame.sprite.spritecollide(self, ships, False)
-        finished = pygame.sprite.spritecollide(self, ends, False)
-
-        if finished:
+    def handle_finish_collision(self):
+        if pygame.sprite.spritecollide(self, ends, False):
             self.finished = True
             attempt = int(get_last_attempt_num()[1]) + 1
             data = ["Felix", str(attempt), str(self.level)]
@@ -126,9 +142,11 @@ class Player(pygame.sprite.Sprite):
         blocks.empty()
         spikes.empty()
         ends.empty()
-        self.rect.x = 50
-        self.rect.y = 100
-        map_file = "./assets/map" + str(self.level) + ".csv"
+        balls.empty()
+        ships.empty()
+
+        self.rect.x, self.rect.y = 50, 100
+        map_file = f"./assets/map{self.level}.csv"
         print(map_file)
         worldmap = load_level_from_csv(map_file)
         generate_blocks_from_map(worldmap)

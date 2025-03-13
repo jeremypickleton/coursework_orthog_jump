@@ -1,5 +1,5 @@
 import csv
-from block import Block, Spike, End, Ship
+from block import Block, Spike, End, Ship, Ball
 
 
 def load_level_from_csv(file_path):
@@ -40,5 +40,7 @@ def generate_blocks_from_map(worldmap):
                 End(colno * 50, rowno * 50)
             if worldmap[rowno][colno] == "p":
                 Ship(colno * 50, rowno * 50)
+            if worldmap[rowno][colno] == "b":
+                Ball(colno * 50, rowno * 50)
             colno += 1
         rowno += 1

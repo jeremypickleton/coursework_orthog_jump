@@ -5,6 +5,7 @@ players = pygame.sprite.Group()
 spikes = pygame.sprite.Group()
 ends = pygame.sprite.Group()
 ships = pygame.sprite.Group()
+balls = pygame.sprite.Group()
 
 
 class GameObj(pygame.sprite.Sprite):
