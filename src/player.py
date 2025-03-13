@@ -146,6 +146,8 @@ class Player(pygame.sprite.Sprite):
         ships.empty()
 
         self.rect.x, self.rect.y = 50, 100
+        self.gravity = True
+        self.gravity_up = False
         map_file = f"./assets/map{self.level}.csv"
         print(map_file)
         worldmap = load_level_from_csv(map_file)
