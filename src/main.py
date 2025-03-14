@@ -3,6 +3,9 @@ import sys
 from player import Player
 from utilities import load_level_from_csv, generate_blocks_from_map
 from game_obj import blocks, players, spikes, ends, ships, balls
+from background import Background
+
+background = Background()
 
 pygame.init()
 screen = pygame.display.set_mode([500, 500])
@@ -12,6 +15,33 @@ TEXT_COLOUR = (255, 255, 255)
 BUTTON_COLOUR = (200, 150, 255)
 
 font = pygame.font.SysFont("Papyrus", 35)
+
+
+class FlashingBackground:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.surface = pygame.Surface((self.width, self.height))
+        self.color1 = (0, 0, 255)  # Blue
+        self.color2 = (255, 0, 0)  # Red
+        self.flash_interval = 500  # Interval in milliseconds
+        self.last_flash_time = 0  # Time when the color was last changed
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        # Change color every 'flash_interval' milliseconds
+        if current_time - self.last_flash_time > self.flash_interval:
+            # Toggle between color1 and color2
+            if self.surface.get_at((0, 0)) == pygame.Color(
+                self.color1[0], self.color1[1], self.color1[2]
+            ):
+                self.surface.fill(self.color2)
+            else:
+                self.surface.fill(self.color1)
+            self.last_flash_time = current_time  # Update the last flash time
+
+    def draw(self, screen):
+        screen.blit(self.surface, (0, 0))
 
 
 class Button:
@@ -59,23 +89,24 @@ def start_game(level):
 
 def game_loop(player):
     clock = pygame.time.Clock()
-    done = False
+    background = FlashingBackground(screen.get_width(), screen.get_height())
 
+    done = False
     while not done:
+        dt = clock.tick(60)  # Get delta time in milliseconds
+        dt = dt / 1000.0  # Convert to seconds
+
+        background.update()  # Update the background with delta time
+
         if player.finished:
             finish_screen()
 
-        # Update the game objects
         blocks.update()
         spikes.update()
         ships.update()
         ends.update()
         balls.update()
 
-        # Control the game frame rate
-        clock.tick(60)
-
-        # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
@@ -83,8 +114,9 @@ def game_loop(player):
                 if event.key == pygame.K_ESCAPE:
                     done = True
 
-        # Fill the background and draw all game elements
-        screen.fill([200, 100, 235])
+        background.draw(screen)  # Draw the dynamic background
+
+        # Draw the rest of the game objects
         blocks.draw(screen)
         spikes.draw(screen)
         ships.draw(screen)
@@ -92,11 +124,9 @@ def game_loop(player):
         ends.draw(screen)
         balls.draw(screen)
 
-        # Update the player's movements and interactions
         player.update()
         player.jump()
 
-        # Flip the display to show changes
         pygame.display.flip()
 
     pygame.quit()
