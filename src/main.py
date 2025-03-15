@@ -12,6 +12,7 @@ TEXT_COLOUR = (255, 255, 255)
 BUTTON_COLOUR = (200, 150, 255)
 
 font = pygame.font.SysFont("Papyrus", 35)
+current_background = "Textured"
 
 
 class FlashingBackground:
@@ -19,23 +20,21 @@ class FlashingBackground:
         self.width = width
         self.height = height
         self.surface = pygame.Surface((self.width, self.height))
-        self.color1 = (0, 0, 255)  # Blue
-        self.color2 = (255, 0, 0)  # Red
-        self.flash_interval = 500  # Interval in milliseconds
-        self.last_flash_time = 0  # Time when the color was last changed
+        self.color1 = (0, 0, 255)
+        self.color2 = (255, 0, 0)
+        self.flash_interval = 500
+        self.last_flash_time = 0
 
     def update(self):
         current_time = pygame.time.get_ticks()
-        # Change color every 'flash_interval' milliseconds
         if current_time - self.last_flash_time > self.flash_interval:
-            # Toggle between color1 and color2
             if self.surface.get_at((0, 0)) == pygame.Color(
                 self.color1[0], self.color1[1], self.color1[2]
             ):
                 self.surface.fill(self.color2)
             else:
                 self.surface.fill(self.color1)
-            self.last_flash_time = current_time  # Update the last flash time
+            self.last_flash_time = current_time
 
     def draw(self, screen):
         screen.blit(self.surface, (0, 0))
@@ -45,23 +44,14 @@ class TexturedBackground:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.image = pygame.image.load(
-            "./assets/background_texture.jpg"
-        ).convert()  # Load your background image
-        self.image = pygame.transform.scale(
-            self.image, (self.width, self.height)
-        )  # Scale it to fit the screen
+        self.image = pygame.image.load("./assets/background_texture.jpg").convert()
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
 
     def update(self):
-        # This method can be used to update the background if needed (e.g., scrolling).
-        # For now, the background is static and doesn't require updates.
         pass
 
     def draw(self, screen):
-        # Draw the textured background
-        screen.blit(
-            self.image, (0, 0)
-        )  # Draw the background at the top-left corner of the screen
+        screen.blit(self.image, (0, 0))
 
 
 class Button:
@@ -85,7 +75,6 @@ class Button:
 
 
 def start_game(level):
-    # Reset all game objects for a fresh start
     blocks.empty()
     spikes.empty()
     ships.empty()
@@ -93,30 +82,30 @@ def start_game(level):
     balls.empty()
     ends.empty()
 
-    # Load the level map
     if level == 1:
         worldmap = load_level_from_csv("./assets/map1.csv")
     elif level == 2:
         worldmap = load_level_from_csv("./assets/map2.csv")
     generate_blocks_from_map(worldmap)
 
-    # Create a player and set the current level
     player = Player(50, 50)
     player.level = level
-
     game_loop(player)
 
 
 def game_loop(player):
     clock = pygame.time.Clock()
-    background = TexturedBackground(screen.get_width(), screen.get_height())
+    if current_background == "Flashing":
+        background = FlashingBackground(screen.get_width(), screen.get_height())
+    else:
+        background = TexturedBackground(screen.get_width(), screen.get_height())
 
     done = False
     while not done:
-        dt = clock.tick(60)  # Get delta time in milliseconds
-        dt = dt / 1000.0  # Convert to seconds
+        dt = clock.tick(60)
+        dt = dt / 1000.0
 
-        background.update()  # Update the background with delta time
+        background.update()
 
         if player.finished:
             finish_screen()
@@ -135,9 +124,8 @@ def game_loop(player):
                 if event.key == pygame.K_ESCAPE:
                     done = True
 
-        background.draw(screen)  # Draw the dynamic background
+        background.draw(screen)
 
-        # Draw the rest of the game objects
         player.draw(screen)
         blocks.draw(screen)
         spikes.draw(screen)
@@ -148,7 +136,6 @@ def game_loop(player):
 
         player.update()
         player.jump()
-
         pygame.display.flip()
 
     pygame.quit()
@@ -156,9 +143,9 @@ def game_loop(player):
 
 
 def menu_screen():
-    # Main menu setup
     start_button = Button("Start Game", 120, 200, 300, 90, level_menu)
     leaderboard_menu = Button("Leaderboard", 170, 300, 220, 70, leaderboard_menu_screen)
+    settings_menu_button = Button("Settings", 120, 400, 300, 90, settings_menu)
 
     done = False
     while not done:
@@ -171,10 +158,13 @@ def menu_screen():
                         start_button.is_pressed(event.pos)
                     if leaderboard_menu.rect.collidepoint(event.pos):
                         leaderboard_menu.is_pressed(event.pos)
+                    if settings_menu_button.rect.collidepoint(event.pos):
+                        settings_menu_button.is_pressed(event.pos)
 
         screen.fill([10, 75, 200])
         start_button.draw(screen, "L")
         leaderboard_menu.draw(screen, "S")
+        settings_menu_button.draw(screen, "S")
 
         pygame.display.flip()
 
@@ -183,7 +173,6 @@ def menu_screen():
 
 
 def level_menu():
-    # Level selection menu setup
     level1 = Button("Level 1", 120, 200, 300, 90, start_game, params=[1])
     level2 = Button("Level 2", 120, 300, 300, 90, start_game, params=[2])
 
@@ -209,8 +198,45 @@ def level_menu():
     sys.exit()
 
 
+def settings_menu():
+    global current_background
+    flash_background_button = Button(
+        "Flashing Background", 120, 200, 300, 90, save_settings, params=["Flashing"]
+    )
+    textured_background_button = Button(
+        "Textured Background", 120, 300, 300, 90, save_settings, params=["Textured"]
+    )
+    back_button = Button("Back", 120, 400, 300, 90, menu_screen)
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if flash_background_button.rect.collidepoint(event.pos):
+                        flash_background_button.is_pressed(event.pos)
+                    if textured_background_button.rect.collidepoint(event.pos):
+                        textured_background_button.is_pressed(event.pos)
+                    if back_button.rect.collidepoint(event.pos):
+                        back_button.is_pressed(event.pos)
+
+        screen.fill([10, 75, 200])
+        flash_background_button.draw(screen, "L")
+        textured_background_button.draw(screen, "L")
+        back_button.draw(screen, "S")
+
+        pygame.display.flip()
+
+
+def save_settings(background_choice):
+    global current_background
+    current_background = background_choice
+    menu_screen()
+
+
 def leaderboard_menu_screen():
-    # Leaderboard screen setup
     blocks.empty()
     spikes.empty()
     ships.empty()
@@ -257,7 +283,6 @@ def leaderboard_menu_screen():
 
 
 def finish_screen():
-    # Display the finish screen when the game ends
     blocks.empty()
     spikes.empty()
     ships.empty()
