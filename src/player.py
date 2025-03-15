@@ -8,18 +8,39 @@ from utilities import (
 )
 
 
+class Particle:
+    def __init__(self, x, y):
+        self.size = 5
+        self.x = x
+        self.y = y
+        self.color = (255, 165, 0)
+        self.dx = -2
+        self.dy = 0
+        self.lifespan = 30
+
+    def update(self):
+        self.x += self.dx
+        self.y += self.dy
+        self.size -= 0.1
+        self.lifespan -= 1
+
+    def is_alive(self):
+        return self.lifespan > 0 and self.size > 0
+
+    def draw(self, screen):
+        pygame.draw.circle(
+            screen, self.color, (int(self.x), int(self.y)), int(self.size)
+        )
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        # self.image = pygame.Surface([45, 45])
-        # self.image.fill([150, 125, 90])
-        self.image = pygame.image.load("./assets/player_texture.png").convert_alpha()  # Load the texture image
-        self.image = pygame.transform.scale(self.image, (45, 45))  # Resize the image to fit the player block size
+        self.image = pygame.image.load("./assets/player_texture.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (45, 45))
 
         self.rect = self.image.get_rect(topleft=(x, y))
-
-        # Movement and game state attributes
         self.dx, self.dy = 0, 0
         self.falling = True
         self.blockmove = False
@@ -28,6 +49,8 @@ class Player(pygame.sprite.Sprite):
         self.flight_mode = False
         self.gravity = True
         self.gravity_up = False
+
+        self.particles = []
 
         players.add(self)
 
@@ -41,13 +64,15 @@ class Player(pygame.sprite.Sprite):
 
         self.handle_gravity(keys)
 
-        # Collision handling
         self.handle_block_collision()
         self.handle_ship_collision()
         self.handle_gravity_switch()
         self.handle_falling_collision()
         self.handle_spike_collision()
         self.handle_finish_collision()
+
+        # Update particles
+        self.update_particles()
 
     def handle_flight(self, keys):
         if keys[pygame.K_UP]:
@@ -65,6 +90,9 @@ class Player(pygame.sprite.Sprite):
         self.blockmove = keys[pygame.K_LEFT]
         self.dx *= 0.7
         self.rect.x += int(self.dx)
+
+        # Generate particles behind the player
+        self.generate_particles()
 
     def handle_normal_jump(self, keys):
         if self.falling:
@@ -92,7 +120,7 @@ class Player(pygame.sprite.Sprite):
         if not self.gravity:
 
             if keys[pygame.K_UP]:
-                print("Gravity disabled", self.dy)
+                # print("Gravity disabled", self.dy)
                 self.dy += 5
                 self.gravity_up = True
             self.dy -= 0.5
@@ -155,3 +183,25 @@ class Player(pygame.sprite.Sprite):
         print(map_file)
         worldmap = load_level_from_csv(map_file)
         generate_blocks_from_map(worldmap)
+
+    def generate_particles(self):
+        print("Generating particles")
+        # Generate particles behind the player when in flight mode
+        particle_x = self.rect.x + self.rect.width // 2
+        particle_y = self.rect.y + self.rect.height
+        self.particles.append(Particle(particle_x, particle_y))
+
+    def update_particles(self):
+        # Update and draw particles
+        for particle in self.particles[:]:
+            particle.update()
+            if not particle.is_alive():
+                self.particles.remove(particle)
+
+    def draw(self, screen):
+        # Draw player
+        screen.blit(self.image, self.rect)
+
+        # Draw particles
+        for particle in self.particles:
+            particle.draw(screen)

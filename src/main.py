@@ -121,6 +121,7 @@ def game_loop(player):
         if player.finished:
             finish_screen()
 
+        player.update()
         blocks.update()
         spikes.update()
         ships.update()
@@ -137,6 +138,7 @@ def game_loop(player):
         background.draw(screen)  # Draw the dynamic background
 
         # Draw the rest of the game objects
+        player.draw(screen)
         blocks.draw(screen)
         spikes.draw(screen)
         ships.draw(screen)
