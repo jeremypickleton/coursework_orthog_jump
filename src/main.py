@@ -3,9 +3,6 @@ import sys
 from player import Player
 from utilities import load_level_from_csv, generate_blocks_from_map
 from game_obj import blocks, players, spikes, ends, ships, balls
-from background import Background
-
-background = Background()
 
 pygame.init()
 screen = pygame.display.set_mode([500, 500])
@@ -42,6 +39,29 @@ class FlashingBackground:
 
     def draw(self, screen):
         screen.blit(self.surface, (0, 0))
+
+
+class TexturedBackground:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.image = pygame.image.load(
+            "./assets/background_texture.jpg"
+        ).convert()  # Load your background image
+        self.image = pygame.transform.scale(
+            self.image, (self.width, self.height)
+        )  # Scale it to fit the screen
+
+    def update(self):
+        # This method can be used to update the background if needed (e.g., scrolling).
+        # For now, the background is static and doesn't require updates.
+        pass
+
+    def draw(self, screen):
+        # Draw the textured background
+        screen.blit(
+            self.image, (0, 0)
+        )  # Draw the background at the top-left corner of the screen
 
 
 class Button:
@@ -89,7 +109,7 @@ def start_game(level):
 
 def game_loop(player):
     clock = pygame.time.Clock()
-    background = FlashingBackground(screen.get_width(), screen.get_height())
+    background = TexturedBackground(screen.get_width(), screen.get_height())
 
     done = False
     while not done:

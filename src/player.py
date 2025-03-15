@@ -12,8 +12,11 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        self.image = pygame.Surface([45, 45])
-        self.image.fill([150, 125, 90])
+        # self.image = pygame.Surface([45, 45])
+        # self.image.fill([150, 125, 90])
+        self.image = pygame.image.load("./assets/player_texture.png").convert_alpha()  # Load the texture image
+        self.image = pygame.transform.scale(self.image, (45, 45))  # Resize the image to fit the player block size
+
         self.rect = self.image.get_rect(topleft=(x, y))
 
         # Movement and game state attributes
